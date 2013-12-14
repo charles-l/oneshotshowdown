@@ -29,6 +29,19 @@ function love.load()
 		rockimg = love.graphics.newImage("rock.png")
 		rockimg:setFilter("nearest", "nearest")
 		ricochet = love.audio.newSource("ricochet.wav", "static")
+		ricochet:setVolume(.1)
+		generateBlocks()
+end
+function generateBlocks()
+		blocks = {}
+		math.randomseed(os.time())
+		for i=1, math.random(6, 15) do
+				x = {}
+				x.b = love.physics.newBody(world, math.random(0, love.graphics.getWidth()), math.random(0, love.graphics.getHeight()))
+				x.s = love.physics.newRectangleShape(math.random(20, 200), math.random(20, 200))
+				x.f = love.physics.newFixture(x.b, x.s)
+				table.insert(blocks, x)
+		end
 end
 function spawnBullet(x, y, tx, ty)
 		if not fire then
@@ -47,10 +60,18 @@ function spawnBullet(x, y, tx, ty)
 		end
 end
 function resetScene()
-		bullet.f:destroy()
-		bullet.b:destroy()
-		bullet = nil
-		fire = false
+		if(fire)then
+				bullet.f:destroy()
+				bullet.b:destroy()
+				bullet = nil
+				fire = false
+		end
+		for i,v in ipairs(blocks) do
+				v.f:destroy()
+				v.b:destroy()
+		end
+		blocks = {}
+		generateBlocks()
 end
 function love.mousepressed(x, y, k)
 		if(dir == flat) then
@@ -88,6 +109,10 @@ function love.draw()
 		end
 		love.graphics.setColor(0, 0, 0)
 		love.graphics.print("FPS " .. love.timer.getFPS(), 10, 10)
+		love.graphics.print(#blocks, 10, 30)
+		for i,v in ipairs(blocks) do
+				love.graphics.polygon("fill", v.b:getWorldPoints(v.s:getPoints()))
+		end
 end
 function beginContact(a, b, col)
 		if(a:getUserData() == "bullet" or b:getUserData() == "bullet") then
